@@ -22,7 +22,7 @@ function goodorbad() {
             Orders[i].getElementsByTagName("div")[8].className = 'Done'
             Orders[i].getElementsByTagName("div")[13].className = 'Done'
             completed.push(Orders[i]);
-        } else if (OrderText.includes("AEC") || OrderText.includes("bizname")) {
+        } else if (OrderText.includes("bizname1") || OrderText.includes("bizname2")) {
             Filtered.push(Orders[i])
         } else {
             Good.push(Orders[i])
