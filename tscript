@@ -1,0 +1,134 @@
+// ==UserScript==
+// @name        Tristans Super Button
+// @description Adds live Tristan's super button
+// @match       *://inventory.dearsystems.com/SaleList
+// @grant       GM_addStyle
+// @version      0.02a
+// @author      TRISTAN & LORI
+// @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
+// @require     http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
+// ==/UserScript==
+Good = []
+Filtered = []
+completed = []
+limiter = true
+
+function goodorbad() {
+    Good = []
+    Orders = document.getElementsByClassName("x-grid-row")
+    for (let i = 0; i < Orders.length; i++) {
+        OrderText = Orders[i].getElementsByClassName('x-grid-cell-inner')[6].innerHTML
+        if (OrderList.includes(Orders[i].getElementsByClassName('x-grid-cell-inner')[4].innerHTML)) {
+            Orders[i].getElementsByTagName("div")[8].className = 'Done'
+            Orders[i].getElementsByTagName("div")[13].className = 'Done'
+            completed.push(Orders[i]);
+        } else if (OrderText.includes("AEC") || OrderText.includes("bizname")) {
+            Filtered.push(Orders[i])
+        } else {
+            Good.push(Orders[i])
+        }
+    }
+}
+
+function setbutt() {
+    if (localStorage.getItem("fullAuto") == "off") {
+        document.getElementById("AutoButton").classList.add("switch");
+    }
+}
+
+function AutoSwitch() {
+    if (localStorage.getItem("fullAuto") == "on") {
+        document.getElementById("AutoButton").classList.add("switch");
+        console.log("off")
+        localStorage.setItem("fullAuto", "off")
+    } else if (localStorage.getItem("fullAuto") != "on") {
+        console.log("on")
+        document.getElementById("AutoButton").classList.remove("switch");
+        localStorage.setItem("fullAuto", "on")
+    }
+}
+
+function sentSwitch() {
+    for (let i = 0; i < completed.length; i++) {
+        completed[i].classList.toggle("hidebizclass");
+    }
+}
+
+waitForKeyElements("#divContinueSetupBlock", function() {
+    Buttons = '<button id="superButton"  class="btn btn-primary btn-small hide-on-mobile tButton" type="button">Open all orders</button>' +
+        '<button id="BanishButton" class="btn btn-primary btn-small hide-on-mobile tButton" type="button">Filter GX</button>' +
+        '<button id="sentButton" class="btn btn-primary btn-small hide-on-mobile tButton" type="button">Filter sent</button>' +
+        '<button id="AutoButton" class="btn btn-primary btn-small hide-on-mobile tButton" type="button">Close by Default</button>'
+    try {
+        header = document.getElementById("divContinueSetupBlock")
+        header.innerHTML = header.innerHTML + Buttons;
+        //--- Activate the newly added button.
+        document.getElementById("superButton").addEventListener(
+            "click", ButtonClickAction, false);
+        document.getElementById("BanishButton").addEventListener(
+            "click", Banisment, false);
+        document.getElementById("sentButton").addEventListener(
+            "click", sentSwitch, false);
+        document.getElementById("AutoButton").addEventListener(
+            "click", AutoSwitch, false);
+    } catch {
+        console.log("error")
+    }
+})
+
+waitForKeyElements(".x-grid-row", function() {
+        while (limiter) {
+            if (localStorage.getItem("orders") == null) {
+                OrderList = ""
+            } else {
+                OrderList = localStorage.getItem("orders")
+            }
+            goodorbad()
+            setbutt()
+            limiter = false
+        }
+
+    })
+    /*--- Create a button in a container div.  It will be styled and
+        positioned with CSS.
+    */
+
+
+function ButtonClickAction(zEvent) {
+    /*--- For our dummy action, we'll just add a line of text to the top
+        of the screen.
+    */
+    goodorbad()
+    OrderNo = Good
+    for (let i = 0; i < OrderNo.length; i++) {
+        OrderNo[i].getElementsByClassName('x-grid-cell-inner')[4].click()
+    }
+}
+
+function Banisment() {
+    goodorbad()
+    Orders = Filtered
+    for (let i = 0; i < Orders.length; i++) {
+        Orders[i].classList.toggle("hidebizclass");
+    }
+}
+
+
+//--- Style our newly added elements using CSS.
+GM_addStyle(`
+    .hidebizclass {
+        display: none;
+    }
+    .btn.btn-primary.btn-small.hide-on-mobile.switch {
+        background-color: grey;
+    }
+    .Done {
+        color: green;
+        text-align: center;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+    #superButton {
+        float: right;}
+
+`);
